@@ -10,7 +10,6 @@
     <groupId>com.github.itsdhanashri.eventledger</groupId>
     <artifactId>account-service</artifactId>
     <name>account-service</name>
-    <description>account-service</description>
+    <description>Account balance service</description>
     <packaging>jar</packaging>
-
 </project>

@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: event-gateway
+    version: 1.0.0
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI}
+      database: event_gateway_db
+
+account-service:
+  base-url: ${ACCOUNT_SERVICE_BASE_URL:http://account-service:8081}

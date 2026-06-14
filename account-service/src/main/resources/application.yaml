@@ -1,3 +1,31 @@
 spring:
   application:
     name: account-service
+    version: 1.0.0
+  threads:
+    virtual:
+      enabled: true
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/account_service_db}
+      database: account_service_db
+
+server:
+  port: ${SERVER_PORT:8081}
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,circuitbreakers
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.github.itsdhanashri.eventledger: DEBUG

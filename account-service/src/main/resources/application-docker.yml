@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: account-service
+    version: 1.0.0
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI}
+      database: account_service_db

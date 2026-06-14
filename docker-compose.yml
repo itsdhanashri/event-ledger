@@ -1,0 +1,83 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: event-ledger-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
+      GATEWAY_DB_PASSWORD: ${GATEWAY_DB_PASSWORD:-changeme}
+      ACCOUNT_SVC_DB_PASSWORD: ${ACCOUNT_SVC_DB_PASSWORD:-changeme}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - event-ledger-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  account-service:
+    build:
+      context: ./account-service
+      dockerfile: Dockerfile
+    container_name: account-service
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_MONGODB_URI: mongodb://account_svc_user:${ACCOUNT_SVC_DB_PASSWORD:-changeme}@mongodb:27017/account_service_db
+      SERVER_PORT: 8081
+    expose:
+      - "8081"
+    networks:
+      - event-ledger-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8081/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  event-gateway:
+    build:
+      context: ./event-gateway
+      dockerfile: Dockerfile
+    container_name: event-gateway
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      account-service:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_MONGODB_URI: mongodb://gateway_user:${GATEWAY_DB_PASSWORD:-changeme}@mongodb:27017/event_gateway_db
+      ACCOUNT_SERVICE_BASE_URL: http://account-service:8081
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - event-ledger-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  event-ledger-network:
+    driver: bridge
+    name: event-ledger-network

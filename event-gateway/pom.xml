@@ -10,7 +10,6 @@
     <groupId>com.github.itsdhanashri.eventledger</groupId>
     <artifactId>event-gateway</artifactId>
     <name>event-gateway</name>
-    <description>event-gateway</description>
+    <description>Event ingestion gateway</description>
     <packaging>jar</packaging>
-
 </project>
